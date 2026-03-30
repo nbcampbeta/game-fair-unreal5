@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Dev Fair 2026 | 내일배움캠프</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal:   #c8922a;
+      --teal2:  #a07020;
+      --gold:   #e8b830;
+      --gold2:  #f8d878;
+      --purple: #6b4a0a;
+      --red:    #c0392b;
+      --bg:     #060400;
+      --bg2:    #0e0900;
+      --panel:  rgba(12,8,0,0.92);
+      --bt:     rgba(212,168,42,0.18);   /* border gold */
+      --bg3:    rgba(100,65,0,0.10);
+      --text:   #f0e8d0;
+      --dim:    rgba(240,232,208,0.38);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══════════ CANVAS ═══════════ */
+    #cvs { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+    /* ═══════════ NAV ═══════════ */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      height:62px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 52px;
+      background:rgba(5,4,12,0.82);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(212,168,42,0.15);
+    }
+    nav::after {
+      content:'';
+      position:absolute; bottom:-1px; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--teal),transparent);
+      opacity:.35;
+    }
+
+    .nav-logo {
+      font-family:'Cinzel',serif;
+      font-size:15px; letter-spacing:3px; color:var(--teal);
+      text-shadow:0 0 20px rgba(212,168,42,.45);
+    }
+
+    .nav-links { display:flex; gap:36px; list-style:none; }
+    .nav-links a {
+      font-family:'Cinzel',serif;
+      font-size:13px; letter-spacing:2px; color:var(--dim);
+      text-decoration:none; text-transform:uppercase; transition:color .2s;
+    }
+    .nav-links a:hover { color:var(--teal); text-shadow:0 0 12px rgba(212,168,42,.5); }
+
+    /* ═══════════ HERO ═══════════ */
+    #hero {
+      position:relative; z-index:1;
+      min-height:100vh;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center;
+      padding:120px 24px 80px;
+      overflow:hidden;
+    }
+
+    /* animated rune ring */
+    .rune-ring {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      pointer-events:none;
+      z-index:0;
+    }
+    .rune-ring svg { display:block; }
+
+    .ring-outer { animation:spin 28s linear infinite; }
+    .ring-mid   { animation:spin 18s linear infinite reverse; }
+    .ring-inner { animation:spin 10s linear infinite; }
+
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .hero-content { position:relative; z-index:2; }
+
+    .hero-eyebrow {
+      font-family:'Cinzel',serif;
+      font-size:13px; letter-spacing:5px; color:var(--gold);
+      text-transform:uppercase; margin-bottom:32px;
+      opacity:0; animation:fadeUp .8s .2s forwards;
+    }
+
+    .hero-title {
+      font-family:'Cinzel',serif;
+      font-size:clamp(52px,11vw,140px);
+      font-weight:900; line-height:.9;
+      letter-spacing:3px;
+      opacity:0; animation:fadeUp .9s .4s forwards;
+    }
+
+    .hero-title .line1 {
+      display:block;
+      color:var(--text);
+      text-shadow:0 0 60px rgba(212,168,42,.2);
+    }
+    .hero-title .line2 {
+      display:block;
+      -webkit-text-stroke:1.5px var(--teal);
+      color:transparent;
+      text-shadow:none;
+      filter:drop-shadow(0 0 18px rgba(212,168,42,.5));
+    }
+    .hero-title .line3 {
+      display:block;
+      font-size:clamp(20px,3.5vw,48px);
+      letter-spacing:14px;
+      color:var(--gold);
+      text-shadow:0 0 30px rgba(212,168,67,.6);
+      margin-top:8px;
+    }
+
+    .hero-sub {
+      margin-top:28px;
+      font-size:14px; letter-spacing:4px; color:var(--dim);
+      text-transform:uppercase;
+      opacity:0; animation:fadeUp .8s .65s forwards;
+    }
+
+    /* COUNTDOWN */
+    .countdown-wrap {
+      margin-top:60px;
+      opacity:0; animation:fadeUp .8s .85s forwards;
+    }
+
+    .cd-label {
+      font-family:'Cinzel',serif;
+      font-size:11px; letter-spacing:5px; color:var(--dim);
+      text-transform:uppercase; margin-bottom:20px;
+    }
+
+    .cd-row { display:flex; align-items:center; gap:8px; justify-content:center; }
+
+    .cd-box {
+      position:relative;
+      padding:16px 28px;
+      background:rgba(212,168,42,.05);
+      border:1px solid rgba(212,168,42,.2);
+      min-width:88px; text-align:center;
+      clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+    }
+    .cd-box::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg,rgba(212,168,42,.06) 0%,transparent 60%);
+      pointer-events:none;
+    }
+    .cd-num {
+      font-family:'Cinzel',serif;
+      font-size:clamp(36px,5vw,52px); font-weight:700; line-height:1;
+      color:var(--teal);
+      text-shadow:0 0 20px rgba(212,168,42,.6);
+      display:block;
+    }
+    .cd-unit {
+      font-family:'Cinzel',serif;
+      font-size:8px; letter-spacing:3px; color:var(--dim);
+      text-transform:uppercase; display:block; margin-top:6px;
+    }
+
+    .cd-sep {
+      font-family:'Cinzel',serif;
+      font-size:clamp(28px,4vw,40px); color:var(--teal2);
+      opacity:.4; padding-bottom:18px;
+    }
+
+    .hero-cta {
+      margin-top:52px;
+      opacity:0; animation:fadeUp .8s 1.1s forwards;
+    }
+
+    /* ═══════════ BUTTONS ═══════════ */
+    .btn {
+      display:inline-block;
+      font-family:'Cinzel',serif;
+      font-size:13px; letter-spacing:4px; text-transform:uppercase;
+      text-decoration:none; padding:16px 52px;
+      clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+      transition:filter .25s, transform .2s, box-shadow .25s;
+    }
+    .btn-teal {
+      background:var(--teal);
+      color:var(--bg);
+      box-shadow:0 0 30px rgba(212,168,42,.3);
+    }
+    .btn-teal:hover {
+      filter:brightness(1.15);
+      transform:translateY(-2px);
+      box-shadow:0 0 50px rgba(212,168,42,.55);
+    }
+    .btn-outline {
+      border:1px solid var(--teal);
+      color:var(--teal);
+    }
+    .btn-outline:hover {
+      background:rgba(212,168,42,.1);
+      box-shadow:0 0 30px rgba(212,168,42,.25);
+      transform:translateY(-2px);
+    }
+
+    /* scroll hint */
+    .scroll-hint {
+      position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      opacity:0; animation:fadeIn 1s 2s forwards;
+    }
+    .scroll-hint span { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color:var(--dim); text-transform:uppercase; }
+    .scroll-bar { width:1px; height:50px; background:linear-gradient(to bottom,var(--teal),transparent); animation:pulse 2s infinite; }
+
+    /* ═══════════ SECTION COMMON ═══════════ */
+    section { position:relative; z-index:1; }
+    .inner { max-width:1140px; margin:0 auto; padding:110px 40px; }
+
+    .sec-label {
+      font-family:'Cinzel',serif;
+      font-size:12px; letter-spacing:6px; color:var(--teal);
+      text-transform:uppercase; margin-bottom:16px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .sec-label::before { content:''; width:28px; height:1px; background:var(--teal); opacity:.6; }
+
+    .sec-title {
+      font-family:'Cinzel',serif;
+      font-size:clamp(28px,4.5vw,52px); font-weight:700;
+      color:var(--text);
+      margin-bottom:64px; line-height:1.1;
+    }
+    .sec-title span { color:var(--teal); text-shadow:0 0 20px rgba(212,168,42,.4); }
+
+    /* ═══════════ ORNATE DIVIDER ═══════════ */
+    .orn {
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:64px;
+    }
+    .orn-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(212,168,42,.35),transparent); }
+    .orn-ico {
+      display:flex; align-items:center; gap:8px; color:rgba(212,168,42,.5); font-size:10px;
+    }
+    .orn-diamond {
+      width:7px; height:7px; background:var(--teal); transform:rotate(45deg);
+      box-shadow:0 0 8px rgba(212,168,42,.6);
+    }
+    .orn-diamond.s { width:4px; height:4px; }
+
+    /* ═══════════ INFO STRIP ═══════════ */
+    #info {
+      border-top:1px solid rgba(212,168,42,.12);
+      border-bottom:1px solid rgba(212,168,42,.12);
+      background:linear-gradient(180deg,var(--bg3),rgba(212,168,42,.02));
+    }
+
+    .info-row { display:grid; grid-template-columns:repeat(4,1fr); }
+
+    .info-cell {
+      padding:52px 40px;
+      border-right:1px solid rgba(212,168,42,.1);
+      transition:background .3s;
+    }
+    .info-cell:last-child { border-right:none; }
+    .info-cell:hover { background:rgba(212,168,42,.04); }
+
+    .info-icon { font-size:26px; margin-bottom:18px; }
+
+    .info-key {
+      font-family:'Cinzel',serif;
+      font-size:11px; letter-spacing:3px; color:var(--dim);
+      text-transform:uppercase; margin-bottom:10px;
+    }
+    .info-val {
+      font-family:'Cinzel',serif;
+      font-size:21px; font-weight:600; color:var(--text);
+      line-height:1.3; margin-bottom:6px;
+    }
+    .info-note { font-size:14px; color:var(--dim); }
+
+    /* ═══════════ TEAMS ═══════════ */
+    #teams { background:linear-gradient(180deg,transparent,rgba(123,63,196,.04) 50%,transparent); }
+
+    /* ── INTRO OVERLAY ── */
+    #intro {
+      position:fixed; inset:0; z-index:2000;
+      background:#03020a;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:40px; cursor:pointer;
+      transition:opacity .9s ease;
+    }
+    #intro.exit { opacity:0; pointer-events:none; }
+
+    .intro-card-wrap {
+      position:relative;
+      width:min(300px, 80vw);
+      perspective:900px;
+      animation:cardIn 1.4s cubic-bezier(.16,1,.3,1) forwards;
+      opacity:0;
+    }
+    @keyframes cardIn {
+      0%  { opacity:0; transform:rotateY(-25deg) rotateX(10deg) scale(.7); }
+      100%{ opacity:1; transform:rotateY(-6deg)  rotateX(4deg)  scale(1); }
+    }
+
+    #intro-cvs {
+      display:block; width:100%; height:auto;
+      border-radius:8px;
+      box-shadow:0 30px 80px rgba(0,0,0,.8), 0 0 60px rgba(201,168,76,.1);
+    }
+
+    .intro-text-layer {
+      position:absolute;
+      inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:32px 24px;
+      animation:textIn 1s 1s forwards; opacity:0;
+    }
+    @keyframes textIn { to { opacity:1; } }
+
+    .intro-label {
+      font-family:'Cinzel',serif;
+      font-size:8px; letter-spacing:5px; color:rgba(201,168,76,.6);
+      text-transform:uppercase; margin-bottom:12px; text-align:center;
+    }
+    .intro-welcome {
+      font-family:'Cinzel',serif;
+      font-size:clamp(26px,7vw,38px); font-weight:700;
+      background:linear-gradient(180deg,#f5e08a,#c9a84c,#8a6010);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+      text-align:center; line-height:1.1;
+      filter:drop-shadow(0 0 20px rgba(201,168,76,.5));
+      margin:8px 0;
+    }
+    .intro-camp {
+      font-family:'Cinzel',serif;
+      font-size:7.5px; letter-spacing:2px; color:rgba(201,168,76,.4);
+      text-align:center; line-height:1.7; margin-top:10px;
+    }
+    .intro-gem {
+      width:20px; height:20px;
+      background:linear-gradient(135deg,#f0d070,#c9a84c);
+      transform:rotate(45deg);
+      margin:10px auto;
+      box-shadow:0 0 16px rgba(201,168,76,.6);
+      animation:gemPulse 2s 1s ease-in-out infinite;
+    }
+    @keyframes gemPulse {
+      0%,100%{ box-shadow:0 0 16px rgba(201,168,76,.6); }
+      50%    { box-shadow:0 0 32px rgba(201,168,76,.9); }
+    }
+
+    .intro-hint {
+      font-family:'Cinzel',serif;
+      font-size:10px; letter-spacing:4px; color:rgba(201,168,76,.35);
+      text-transform:uppercase;
+      animation:hintPulse 2s 1.5s ease-in-out infinite; opacity:0;
+    }
+    @keyframes hintPulse {
+      0%,100%{ opacity:.35; } 50%{ opacity:.7; }
+    }
+
+    /* ── CAROUSEL ── */
+    .carousel-wrap { position:relative; }
+
+    /* fix: override .team-card { position:relative } */
+    .c-track .c-card { position:absolute !important; }
+    /* prevent .team-card:hover transform from conflicting with JS transforms */
+    .c-track .c-card:hover {
+      transform:none; border-color:rgba(212,168,42,.15);
+      box-shadow:none;
+    }
+
+    .c-scene {
+      perspective:1800px;
+      perspective-origin:50% 40%;
+      position:relative;
+      height:660px;
+      overflow:visible;
+    }
+
+    .c-track {
+      position:absolute; inset:0;
+      transform-style:preserve-3d;
+    }
+
+    .c-card {
+      position:absolute;
+      width:440px;
+      left:50%; margin-left:-220px;
+      top:0;
+      transform-origin:center center;
+      transition:transform .6s cubic-bezier(.25,.46,.45,.94),
+                 opacity .5s ease, filter .5s ease, box-shadow .4s ease;
+      cursor:pointer;
+      will-change:transform;
+    }
+
+    .c-card.is-active {
+      cursor:default;
+      border-color:rgba(212,168,42,.8) !important;
+      box-shadow:0 0 80px rgba(212,168,42,.25), 0 0 30px rgba(212,168,42,.12), 0 40px 90px rgba(0,0,0,.9) !important;
+    }
+    .c-card.is-active .tc-cut { opacity:1 !important; }
+    .c-card.is-active .thumb-glow { animation-duration:1.2s; }
+    .c-card.is-active .team-num-badge {
+      color:var(--gold); border-color:rgba(212,168,67,.6);
+      background:rgba(212,168,67,.12);
+    }
+
+    /* auto-play progress bar */
+    .c-progress {
+      height:2px; background:rgba(212,168,42,.12);
+      margin-top:24px; border-radius:1px; overflow:hidden;
+    }
+    .c-progress-bar {
+      height:100%; width:0%;
+      background:linear-gradient(90deg,var(--teal),var(--gold));
+      transition:width linear;
+    }
+
+    /* GAME CARD */
+    .team-card {
+      position:relative; background:var(--panel);
+      border:1px solid rgba(212,168,42,.15);
+      overflow:hidden; cursor:pointer;
+      transition:border-color .35s, transform .4s, box-shadow .4s;
+      clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));
+    }
+    .team-card:hover {
+      border-color:rgba(212,168,42,.55);
+      transform:translateY(-6px);
+      box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 30px rgba(212,168,42,.1);
+    }
+
+    /* top-right cut indicator */
+    .tc-cut {
+      position:absolute; top:0; right:0; width:20px; height:20px;
+      background:var(--teal); opacity:.25;
+      clip-path:polygon(0 0,100% 0,100% 100%);
+      z-index:2;
+    }
+    .team-card:hover .tc-cut { opacity:.6; }
+
+    .team-thumb {
+      width:100%; aspect-ratio:16/9;
+      position:relative; overflow:hidden;
+      min-height:220px;
+    }
+
+    .team-thumb-bg { position:absolute; inset:0; }
+    .g1 { background:radial-gradient(ellipse at 40% 40%,#2a0040 0%,#0d0020 50%,#050010 100%); }
+    .g2 { background:radial-gradient(ellipse at 60% 30%,#002840 0%,#000d28 50%,#050010 100%); }
+    .g3 { background:radial-gradient(ellipse at 30% 60%,#003030 0%,#001020 50%,#050010 100%); }
+    .g4 { background:radial-gradient(ellipse at 70% 50%,#401800 0%,#180800 50%,#050010 100%); }
+    .g5 { background:radial-gradient(ellipse at 50% 30%,#001840 0%,#000820 50%,#050010 100%); }
+    .g6 { background:radial-gradient(ellipse at 40% 70%,#300040 0%,#100020 50%,#050010 100%); }
+    .g7 { background:radial-gradient(ellipse at 60% 40%,#003838 0%,#001420 50%,#050010 100%); }
+    .g8 { background:radial-gradient(ellipse at 30% 30%,#200040 0%,#080020 50%,#050010 100%); }
+    .g9 { background:radial-gradient(ellipse at 50% 60%,#001c3c 0%,#000c1c 50%,#050010 100%); }
+
+    /* thumbnail inner glow */
+    .thumb-glow {
+      position:absolute; inset:0;
+      background:radial-gradient(ellipse at 50% 50%,rgba(212,168,42,.06) 0%,transparent 70%);
+      animation:glowPulse 3s ease-in-out infinite;
+    }
+    @keyframes glowPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    .team-thumb-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(to top,var(--panel) 0%,rgba(15,10,35,.6) 40%,transparent 100%);
+    }
+
+    .thumb-placeholder {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Cinzel',serif;
+      font-size:9px; letter-spacing:3px; color:rgba(212,168,42,.18);
+      text-transform:uppercase;
+    }
+
+    .team-num-badge {
+      position:absolute; top:16px; left:16px; z-index:3;
+      font-family:'Cinzel',serif;
+      font-size:11px; letter-spacing:3px; color:var(--teal);
+      background:rgba(0,0,0,.7); border:1px solid rgba(212,168,42,.4);
+      padding:6px 14px;
+      transition:color .3s, border-color .3s, background .3s;
+      clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+    }
+
+    .team-body { padding:26px 30px 34px; }
+
+    .team-genre {
+      font-family:'Cinzel',serif;
+      font-size:9px; letter-spacing:3px; color:var(--teal2);
+      text-transform:uppercase; margin-bottom:10px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .team-genre::before { content:'◆'; font-size:5px; color:var(--gold); }
+
+    .team-name {
+      font-family:'Cinzel',serif;
+      font-size:26px; font-weight:700; color:var(--text);
+      margin-bottom:12px; line-height:1.1;
+      text-shadow:0 0 30px rgba(212,168,42,.2);
+    }
+
+    .team-sep {
+      height:1px;
+      background:linear-gradient(90deg,rgba(212,168,42,.25),transparent);
+      margin-bottom:12px;
+    }
+
+    .team-desc { font-size:12.5px; color:var(--dim); line-height:1.85; margin-bottom:16px; }
+
+    .team-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .tag {
+      font-family:'Cinzel',serif;
+      font-size:8px; letter-spacing:1px; padding:4px 10px;
+      border:1px solid rgba(212,168,42,.2);
+      color:rgba(212,168,42,.55);
+      clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+    }
+
+    /* ── CAROUSEL INFO PANEL ── */
+    .c-info {
+      margin-top:52px;
+      text-align:center;
+      min-height:180px;
+      position:relative;
+    }
+
+    .ci-inner {
+      transition:opacity .3s ease, transform .3s ease;
+    }
+    .ci-inner.fade {
+      opacity:0; transform:translateY(10px);
+    }
+
+    .ci-genre {
+      font-family:'Cinzel',serif;
+      font-size:9px; letter-spacing:5px; color:var(--teal2);
+      text-transform:uppercase; margin-bottom:12px;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+    }
+    .ci-genre::before, .ci-genre::after { content:'◆'; font-size:5px; color:var(--gold); }
+
+    .ci-name {
+      font-family:'Cinzel',serif;
+      font-size:clamp(24px,3.5vw,38px); font-weight:700;
+      color:var(--text);
+      margin-bottom:16px; line-height:1.1;
+      text-shadow:0 0 30px rgba(212,168,42,.2);
+    }
+
+    .ci-sep {
+      width:60px; height:1px;
+      background:linear-gradient(90deg,transparent,var(--teal),transparent);
+      margin:0 auto 16px;
+    }
+
+    .ci-desc {
+      font-size:14px; color:var(--dim); line-height:1.9;
+      max-width:560px; margin:0 auto 20px;
+    }
+
+    .ci-tags {
+      display:flex; flex-wrap:wrap; gap:6px;
+      justify-content:center; margin-bottom:16px;
+    }
+
+    .ci-links {
+      display:flex; gap:10px; justify-content:center; align-items:center;
+      flex-wrap:wrap;
+    }
+    .ci-link {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 14px; border-radius:4px; font-size:11px;
+      font-family:'Cinzel',serif; letter-spacing:1px;
+      text-decoration:none; transition:all .2s;
+      border:1px solid;
+    }
+    .ci-link.github {
+      border-color:rgba(212,168,42,.4); color:var(--teal2);
+      background:rgba(212,168,42,.07);
+    }
+    .ci-link.github:hover { background:rgba(212,168,42,.18); border-color:var(--teal2); }
+    .ci-link.notion {
+      border-color:rgba(212,168,67,.4); color:var(--gold);
+      background:rgba(212,168,67,.07);
+    }
+    .ci-link.notion:hover { background:rgba(212,168,67,.18); border-color:var(--gold); }
+    .ci-members {
+      font-size:11px; color:var(--dim); font-family:'Cinzel',serif;
+      letter-spacing:1px; padding:6px 10px;
+    }
+
+    /* ── CAROUSEL NAV ── */
+    .c-nav {
+      display:flex; align-items:center; justify-content:center;
+      gap:24px; margin-top:40px;
+    }
+
+    .c-btn {
+      display:flex; align-items:center; justify-content:center;
+      width:48px; height:48px;
+      background:rgba(212,168,42,.06);
+      border:1px solid rgba(212,168,42,.25);
+      color:var(--teal); cursor:pointer;
+      clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+      transition:background .25s, box-shadow .25s, transform .2s;
+      font-size:18px; font-family:'Cinzel',serif;
+    }
+    .c-btn:hover {
+      background:rgba(212,168,42,.15);
+      box-shadow:0 0 20px rgba(212,168,42,.3);
+      transform:scale(1.08);
+    }
+    .c-btn:active { transform:scale(.95); }
+
+    .c-dots {
+      display:flex; gap:8px; align-items:center;
+    }
+
+    .c-dot {
+      width:6px; height:6px;
+      background:rgba(212,168,42,.2);
+      transform:rotate(45deg);
+      transition:background .3s, transform .3s, box-shadow .3s;
+      cursor:pointer;
+    }
+    .c-dot.on {
+      background:var(--teal);
+      transform:rotate(45deg) scale(1.4);
+      box-shadow:0 0 8px rgba(212,168,42,.7);
+    }
+
+    .c-counter {
+      font-family:'Cinzel',serif;
+      font-size:11px; letter-spacing:3px; color:var(--dim);
+      min-width:52px; text-align:center;
+    }
+
+    /* ═══════════ TEAMS EDITORIAL ═══════════ */
+    #teams { padding-bottom:120px; }
+
+    .te-grid {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:2px;
+      max-width:1400px;
+      margin:0 auto;
+      padding:0 40px;
+    }
+
+    .te-card {
+      position:relative; overflow:hidden;
+      aspect-ratio:3/4;
+      cursor:pointer;
+      background:var(--bg2);
+    }
+
+    .te-cover {
+      position:absolute; inset:0;
+      background:center/cover no-repeat var(--bg2);
+      transition:transform .7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .te-card:hover .te-cover { transform:scale(1.07); }
+
+    .te-grad {
+      position:absolute; inset:0;
+      background:linear-gradient(to top,
+        rgba(4,3,0,.95) 0%,
+        rgba(4,3,0,.55) 40%,
+        rgba(4,3,0,.1)  65%,
+        transparent     100%);
+      transition:opacity .4s;
+    }
+    .te-card:hover .te-grad { opacity:.85; }
+
+    /* top strip — always visible */
+    .te-top {
+      position:absolute; top:0; left:0; right:0;
+      z-index:3;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:18px 20px;
+    }
+    .te-genre {
+      font-size:11px; letter-spacing:2px; text-transform:uppercase;
+      color:var(--gold);
+      background:rgba(4,3,0,.55);
+      padding:5px 10px;
+      backdrop-filter:blur(6px);
+      border:1px solid rgba(212,168,42,.25);
+    }
+    .te-num {
+      font-family:'Cinzel',serif; font-size:13px; letter-spacing:2px;
+      color:rgba(240,232,208,.35);
+    }
+
+    /* bottom — always visible */
+    .te-bottom {
+      position:absolute; bottom:0; left:0; right:0;
+      z-index:3;
+      padding:22px 24px 26px;
+    }
+    .te-name {
+      font-family:'Cinzel',serif;
+      font-size:clamp(18px,2.5vw,30px);
+      font-weight:700;
+      color:#fff;
+      line-height:1.2;
+      text-shadow:0 2px 24px rgba(0,0,0,.9);
+      margin-bottom:10px;
+    }
+    .te-line {
+      height:1px;
+      background:linear-gradient(90deg,var(--gold),transparent);
+      width:0;
+      transition:width .55s cubic-bezier(.25,.46,.45,.94) .05s;
+    }
+    .te-card:hover .te-line { width:52px; }
+
+    /* hover-reveal block */
+    .te-reveal {
+      display:grid;
+      grid-template-rows:0fr;
+      transition:grid-template-rows .5s cubic-bezier(.25,.46,.45,.94),
+                 opacity .4s .08s;
+      opacity:0;
+    }
+    .te-card:hover .te-reveal {
+      grid-template-rows:1fr;
+      opacity:1;
+    }
+    .te-reveal-inner { overflow:hidden; }
+    .te-desc {
+      font-size:13px; line-height:1.85;
+      color:rgba(240,232,208,.72);
+      margin-top:13px;
+      display:-webkit-box; -webkit-line-clamp:3;
+      -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .te-link {
+      display:inline-block;
+      margin-top:14px;
+      font-family:'Cinzel',serif;
+      font-size:11px; letter-spacing:2px;
+      color:var(--gold);
+      text-decoration:none;
+      border:1px solid rgba(212,168,42,.55);
+      padding:8px 18px;
+      background:rgba(212,168,42,.08);
+      backdrop-filter:blur(4px);
+      transition:background .2s, color .2s, border-color .2s;
+    }
+    .te-link::after { content:' ↗'; }
+    .te-link:hover {
+      background:rgba(212,168,42,.22);
+      color:var(--gold2);
+      border-color:var(--gold2);
+    }
+
+    /* placeholder so old sl-slide reference below compiles */
+    .sl-slide { display:none; }
+
+
+    /* ═══════════ SCHEDULE ═══════════ */
+    #schedule {
+      background:linear-gradient(180deg,transparent,rgba(212,168,42,.025) 50%,transparent);
+    }
+
+    .sch-list { display:flex; flex-direction:column; }
+
+    .sch-row {
+      display:grid; grid-template-columns:180px auto 1fr;
+      gap:32px; align-items:center;
+      padding:32px 0;
+      border-bottom:1px solid rgba(212,168,42,.1);
+      transition:background .25s, padding-left .25s;
+    }
+    .sch-row:first-child { border-top:1px solid rgba(212,168,42,.1); }
+    .sch-row:hover { background:rgba(212,168,42,.03); padding-left:12px; }
+
+    .sch-time {
+      font-family:'Cinzel',serif;
+      font-size:16px; color:var(--teal);
+      text-shadow:0 0 12px rgba(212,168,42,.4);
+    }
+
+    .sch-dot {
+      width:10px; height:10px;
+      background:var(--teal); transform:rotate(45deg);
+      box-shadow:0 0 12px rgba(212,168,42,.6);
+      flex-shrink:0;
+    }
+
+    .sch-text {}
+    .sch-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .sch-desc { font-size:14px; color:var(--dim); line-height:1.6; }
+
+    /* ── TIMETABLE IMAGES ── */
+    .sch-timetable {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:24px;
+      margin-top:56px;
+    }
+    .sch-tt-card {
+      display:flex; flex-direction:column; gap:14px;
+    }
+    .sch-tt-label {
+      font-family:'Cinzel',serif;
+      font-size:13px; letter-spacing:4px;
+      color:var(--gold);
+      border-left:2px solid var(--gold);
+      padding-left:12px;
+    }
+    .sch-tt-img {
+      width:100%; display:block;
+      border:1px solid rgba(212,168,42,.18);
+      box-shadow:0 8px 40px rgba(0,0,0,.5);
+    }
+
+    /* ═══════════ BOOTH MAP ═══════════ */
+    #map { border-top:1px solid rgba(212,168,42,.1); }
+
+    .map-legend {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:0;
+      max-width:900px;
+      margin:0 auto;
+      border:1px solid rgba(212,168,42,.15);
+      border-top:none;
+    }
+    .map-legend-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 20px;
+      border-right:1px solid rgba(212,168,42,.1);
+      border-bottom:1px solid rgba(212,168,42,.1);
+    }
+    .map-legend-item:nth-child(3n) { border-right:none; }
+    .map-legend-item:nth-child(7),
+    .map-legend-item:nth-child(8),
+    .map-legend-item:nth-child(9) { border-bottom:none; }
+    .map-legend-num {
+      font-family:'Cinzel',serif;
+      font-size:11px; font-weight:700;
+      color:var(--gold);
+      background:rgba(212,168,42,.1);
+      border:1px solid rgba(212,168,42,.3);
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .map-legend-name {
+      font-size:13px; color:var(--text);
+      letter-spacing:.5px;
+    }
+
+    .map-img-wrap {
+      max-width:900px;
+      margin:0 auto;
+      border:1px solid rgba(212,168,42,.2);
+      box-shadow:0 12px 60px rgba(0,0,0,.6);
+    }
+    .map-img {
+      width:100%; display:block;
+      image-rendering:crisp-edges;
+    }
+
+    /* ═══════════ ATTEND ═══════════ */
+    #attend { border-top:1px solid rgba(212,168,42,.1); }
+
+    .attend-wrap {
+      max-width:760px;
+      background:var(--panel);
+      border:1px solid rgba(212,168,42,.2);
+      padding:72px 64px;
+      position:relative;
+      clip-path:polygon(20px 0%,100% 0%,100% calc(100% - 20px),calc(100% - 20px) 100%,0% 100%,0% 20px);
+    }
+
+    /* glow border top */
+    .attend-wrap::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,var(--teal),transparent);
+    }
+
+    .attend-icon { font-size:48px; margin-bottom:28px; filter:drop-shadow(0 0 16px rgba(212,168,42,.4)); }
+
+    .attend-platform {
+      display:inline-flex; align-items:center; gap:10px;
+      font-family:'Cinzel',serif; font-size:13px; letter-spacing:4px;
+      color:var(--teal); text-transform:uppercase; margin-bottom:32px;
+    }
+    .live-dot { width:6px; height:6px; background:var(--teal); border-radius:50%; animation:blink 2s infinite; }
+
+    .attend-desc {
+      font-size:17px; color:var(--dim); line-height:2.2; margin-bottom:48px;
+    }
+    .attend-desc strong { color:var(--text); font-weight:500; }
+
+    .attend-cta { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+    .attend-note { font-family:'Cinzel',serif; font-size:12px; letter-spacing:2px; color:var(--dim); }
+
+    /* ═══════════ FOOTER ═══════════ */
+    footer {
+      position:relative; z-index:1;
+      border-top:1px solid rgba(212,168,42,.1);
+      padding:48px 52px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    footer::before {
+      content:''; position:absolute; top:-1px; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--teal),transparent); opacity:.3;
+    }
+
+    .footer-logo {
+      font-family:'Cinzel',serif; font-size:16px; letter-spacing:3px; color:var(--teal);
+      text-shadow:0 0 16px rgba(212,168,42,.4);
+    }
+    .footer-copy { font-family:'Cinzel',serif; font-size:12px; letter-spacing:1.5px; color:var(--dim); }
+
+    /* ═══════════ ANIMATIONS ═══════════ */
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(26px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+    @keyframes pulse   { 0%,100%{opacity:.3} 50%{opacity:1} }
+    @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease,transform .7s ease; }
+    .reveal.in { opacity:1; transform:translateY(0); }
+
+    /* ═══════════ RESPONSIVE ═══════════ */
+    @media(max-width:960px) {
+      .info-row { grid-template-columns:repeat(2,1fr); }
+      .info-cell { border-bottom:1px solid rgba(212,168,42,.1); }
+      .nav-links { display:none; }
+      nav { padding:0 24px; }
+      .c-card { width:260px; margin-left:-130px; }
+    }
+    @media(max-width:600px) {
+      .info-row { grid-template-columns:1fr; }
+      .c-scene { height:400px; }
+      .c-card { width:220px; margin-left:-110px; }
+      .inner { padding:80px 20px; }
+      .sch-row { grid-template-columns:1fr; gap:10px; }
+      .sch-dot { display:none; }
+      .attend-wrap { padding:48px 28px; }
+      footer { flex-direction:column; gap:16px; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro" onclick="introExit()">
+  <div class="intro-card-wrap">
+    <canvas id="intro-cvs" width="300" height="460"></canvas>
+    <div class="intro-text-layer">
+      <p class="intro-label">Game Developer Fair 2026</p>
+      <div class="intro-gem"></div>
+      <h1 class="intro-welcome">환영합니다</h1>
+      <p class="intro-camp">내일배움캠프<br>Unreal 기반 3D 게임개발자<br>양성과정 5/6기</p>
+    </div>
+  </div>
+  <p class="intro-hint">— 클릭하여 입장 —</p>
+</div>
+
+<canvas id="cvs"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">NBC · Game Dev Fair 2026</div>
+  <ul class="nav-links">
+    <li><a href="#info">행사 정보</a></li>
+    <li><a href="#teams">참가 팀</a></li>
+    <li><a href="#schedule">일정</a></li>
+    <li><a href="#map">부스 배치도</a></li>
+    <li><a href="#attend">입장하기</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+
+  <!-- Rune Ring SVG -->
+  <div class="rune-ring" style="width:min(720px,90vw);height:min(720px,90vw);">
+    <svg viewBox="0 0 720 720" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <!-- outer ring -->
+      <g class="ring-outer">
+        <circle cx="360" cy="360" r="340" stroke="rgba(212,168,42,0.07)" stroke-width="1"/>
+        <circle cx="360" cy="360" r="340" stroke="url(#gr1)" stroke-width="1" stroke-dasharray="12 24"/>
+        <!-- tick marks -->
+        <g stroke="rgba(212,168,42,0.25)" stroke-width="1.5">
+          <line x1="360" y1="20" x2="360" y2="44"/>
+          <line x1="360" y1="676" x2="360" y2="700"/>
+          <line x1="20" y1="360" x2="44" y2="360"/>
+          <line x1="676" y1="360" x2="700" y2="360"/>
+        </g>
+        <!-- diagonal ticks -->
+        <g stroke="rgba(212,168,42,0.12)" stroke-width="1">
+          <line x1="600" y1="60" x2="590" y2="82"/>
+          <line x1="120" y1="60" x2="130" y2="82"/>
+          <line x1="600" y1="660" x2="590" y2="638"/>
+          <line x1="120" y1="660" x2="130" y2="638"/>
+        </g>
+      </g>
+
+      <!-- mid ring -->
+      <g class="ring-mid">
+        <circle cx="360" cy="360" r="270" stroke="rgba(123,63,196,0.1)" stroke-width="1"/>
+        <circle cx="360" cy="360" r="270" stroke="url(#gr2)" stroke-width="1" stroke-dasharray="6 16"/>
+        <!-- small diamonds at cardinal points -->
+        <rect x="354" y="82" width="12" height="12" transform="rotate(45 360 88)" fill="none" stroke="rgba(123,63,196,0.35)" stroke-width="1"/>
+        <rect x="354" y="620" width="12" height="12" transform="rotate(45 360 632)" fill="none" stroke="rgba(123,63,196,0.35)" stroke-width="1"/>
+        <rect x="82" y="354" width="12" height="12" transform="rotate(45 88 360)" fill="none" stroke="rgba(123,63,196,0.35)" stroke-width="1"/>
+        <rect x="620" y="354" width="12" height="12" transform="rotate(45 632 360)" fill="none" stroke="rgba(123,63,196,0.35)" stroke-width="1"/>
+      </g>
+
+      <!-- inner ring -->
+      <g class="ring-inner">
+        <circle cx="360" cy="360" r="190" stroke="rgba(212,168,42,0.08)" stroke-width="1"/>
+        <circle cx="360" cy="360" r="190" stroke="url(#gr3)" stroke-width="0.8" stroke-dasharray="3 10"/>
+        <!-- cross lines -->
+        <line x1="360" y1="170" x2="360" y2="200" stroke="rgba(212,168,42,0.2)" stroke-width="1"/>
+        <line x1="360" y1="520" x2="360" y2="550" stroke="rgba(212,168,42,0.2)" stroke-width="1"/>
+        <line x1="170" y1="360" x2="200" y2="360" stroke="rgba(212,168,42,0.2)" stroke-width="1"/>
+        <line x1="520" y1="360" x2="550" y2="360" stroke="rgba(212,168,42,0.2)" stroke-width="1"/>
+      </g>
+
+      <!-- static center cross -->
+      <line x1="340" y1="360" x2="380" y2="360" stroke="rgba(212,168,42,0.18)" stroke-width="1"/>
+      <line x1="360" y1="340" x2="360" y2="380" stroke="rgba(212,168,42,0.18)" stroke-width="1"/>
+      <rect x="354" y="354" width="12" height="12" transform="rotate(45 360 360)" fill="rgba(212,168,42,0.08)" stroke="rgba(212,168,42,0.35)" stroke-width="1"/>
+
+      <defs>
+        <linearGradient id="gr1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="rgba(212,168,42,0.4)"/>
+          <stop offset="50%"  stop-color="rgba(212,168,42,0.08)"/>
+          <stop offset="100%" stop-color="rgba(212,168,42,0.4)"/>
+        </linearGradient>
+        <linearGradient id="gr2" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="rgba(123,63,196,0.45)"/>
+          <stop offset="50%"  stop-color="rgba(123,63,196,0.06)"/>
+          <stop offset="100%" stop-color="rgba(123,63,196,0.45)"/>
+        </linearGradient>
+        <linearGradient id="gr3" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%"   stop-color="rgba(212,168,42,0.35)"/>
+          <stop offset="100%" stop-color="rgba(212,168,42,0.05)"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">내일배움캠프 · Unreal 기반 3D 게임개발자 양성과정 5/6기</p>
+
+    <h1 class="hero-title">
+      <span class="line1">GAME</span>
+      <span class="line2">DEVELOPER</span>
+      <span class="line3">FAIR  2026</span>
+    </h1>
+
+    <p class="hero-sub">최종 프로젝트 박람회 &nbsp;·&nbsp; 9팀의 역작 &nbsp;·&nbsp; 2026.04.01</p>
+
+    <div class="countdown-wrap">
+      <p class="cd-label">— 개막까지 —</p>
+      <div class="cd-row">
+        <div class="cd-box">
+          <span class="cd-num" id="cd-d">00</span>
+          <span class="cd-unit">Days</span>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box">
+          <span class="cd-num" id="cd-h">00</span>
+          <span class="cd-unit">Hours</span>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box">
+          <span class="cd-num" id="cd-m">00</span>
+          <span class="cd-unit">Min</span>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box">
+          <span class="cd-num" id="cd-s">00</span>
+          <span class="cd-unit">Sec</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#teams" class="btn btn-teal">팀 소개 보기</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<!-- INFO -->
+<section id="info">
+  <div class="info-row">
+    <div class="info-cell">
+      <div class="info-icon">📅</div>
+      <p class="info-key">Date</p>
+      <p class="info-val">2026.04.01</p>
+      <p class="info-note">수요일</p>
+    </div>
+    <div class="info-cell">
+      <div class="info-icon">🕑</div>
+      <p class="info-key">Time</p>
+      <p class="info-val">14:00 – 21:00</p>
+      <p class="info-note">총 7시간</p>
+    </div>
+    <div class="info-cell">
+      <div class="info-icon">🌐</div>
+      <p class="info-key">Venue</p>
+      <p class="info-val">ZEP 가상공간</p>
+      <p class="info-note">온라인 메타버스</p>
+    </div>
+    <div class="info-cell">
+      <div class="info-icon">🎮</div>
+      <p class="info-key">Projects</p>
+      <p class="info-val">총 9팀</p>
+      <p class="info-note">Unreal Engine 5 기반</p>
+    </div>
+  </div>
+</section>
+
+<!-- TEAMS -->
+<section id="teams">
+  <div class="inner">
+    <p class="sec-label reveal">Participants</p>
+    <h2 class="sec-title reveal">참가 팀 <span>소개</span></h2>
+    <div class="orn reveal">
+      <div class="orn-line"></div>
+      <div class="orn-ico"><div class="orn-diamond s"></div><div class="orn-diamond"></div><div class="orn-diamond s"></div></div>
+      <div class="orn-line"></div>
+    </div>
+  </div>
+  <div class="te-grid" id="tg-grid"></div>
+</section>
+
+<!-- SCHEDULE -->
+<section id="schedule">
+  <div class="inner">
+    <p class="sec-label reveal">Schedule</p>
+    <h2 class="sec-title reveal">행사 <span>일정</span></h2>
+    <div class="orn reveal">
+      <div class="orn-line"></div>
+      <div class="orn-ico"><div class="orn-diamond s"></div><div class="orn-diamond"></div><div class="orn-diamond s"></div></div>
+      <div class="orn-line"></div>
+    </div>
+    <div class="sch-list reveal">
+      <div class="sch-row">
+        <div class="sch-time">14:00 – 18:00</div>
+        <div class="sch-dot"></div>
+        <div class="sch-text"><p class="sch-title">발표회</p><p class="sch-desc">A · B 섹션 동시 진행 — 팀별 발표 15분 + 피드백 10분</p></div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">18:00 – 19:00</div>
+        <div class="sch-dot"></div>
+        <div class="sch-text"><p class="sch-title">휴식 시간</p><p class="sch-desc">네트워킹 및 자유 시간</p></div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">19:00 – 21:00</div>
+        <div class="sch-dot"></div>
+        <div class="sch-text"><p class="sch-title">부스 자유 관람</p><p class="sch-desc">9개 팀 부스 자유 방문 및 게임 체험</p></div>
+      </div>
+    </div>
+
+    <!-- 세부 시간표 이미지 -->
+    <div class="sch-timetable reveal">
+      <div class="sch-tt-card">
+        <div class="sch-tt-label">Section A</div>
+        <img src="schedule_A.png" alt="Section A 발표 시간표" class="sch-tt-img" />
+      </div>
+      <div class="sch-tt-card">
+        <div class="sch-tt-label">Section B</div>
+        <img src="schedule_B.png" alt="Section B 발표 시간표" class="sch-tt-img" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOTH MAP -->
+<section id="map">
+  <div class="inner">
+    <p class="sec-label reveal">Booth Map</p>
+    <h2 class="sec-title reveal">부스 <span>배치도</span></h2>
+    <div class="orn reveal">
+      <div class="orn-line"></div>
+      <div class="orn-ico"><div class="orn-diamond s"></div><div class="orn-diamond"></div><div class="orn-diamond s"></div></div>
+      <div class="orn-line"></div>
+    </div>
+    <div class="map-img-wrap reveal">
+      <img src="booth_map.png" alt="부스 배치도" class="map-img" />
+    </div>
+    <div class="map-legend reveal">
+      <div class="map-legend-item"><span class="map-legend-num">1</span><span class="map-legend-name">BulletAnt</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">2</span><span class="map-legend-name">ProjectD</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">3</span><span class="map-legend-name">Desecration</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">4</span><span class="map-legend-name">오류의 땅: 제킨</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">5</span><span class="map-legend-name">PROJECT WARD ZERO</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">6</span><span class="map-legend-name">ProjectER</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">7</span><span class="map-legend-name">네크로멘서</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">8</span><span class="map-legend-name">P2W : The Party Show</span></div>
+      <div class="map-legend-item"><span class="map-legend-num">9</span><span class="map-legend-name">StillBound</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ATTEND -->
+<section id="attend">
+  <div class="inner">
+    <p class="sec-label reveal">Join Us</p>
+    <h2 class="sec-title reveal">입장 <span>하기</span></h2>
+    <div class="attend-wrap reveal">
+      <div class="attend-icon">⚔️</div>
+      <div class="attend-platform"><div class="live-dot"></div>ZEP 메타버스 · 온라인 접속</div>
+      <p class="attend-desc">
+        별도 설치 없이 브라우저에서 바로 입장할 수 있습니다.<br>
+        <strong>2026년 4월 1일 14:00</strong>부터 입장 가능합니다.<br>
+        원활한 관람을 위해 <strong>PC 접속</strong>을 권장합니다.
+      </p>
+      <div class="attend-cta">
+        <a href="#" class="btn btn-teal">ZEP 입장하기</a>
+        <span class="attend-note">입장 링크는 행사 당일 공개됩니다</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">NBC · Game Dev Fair 2026</div>
+  <p class="footer-copy">내일배움캠프 Unreal 기반 3D 게임개발자 양성과정 5/6기 © 2026</p>
+</footer>
+
+<script>
+/* ═══════════ INTRO ═══════════ */
+(function drawTarot() {
+  const c   = document.getElementById('intro-cvs');
+  const ctx = c.getContext('2d');
+  const W = 300, H = 460, cx = W/2, cy = H/2;
+  const gold  = (a) => `rgba(201,168,76,${a})`;
+
+  // card background
+  ctx.fillStyle = '#060400';
+  ctx.fillRect(0,0,W,H);
+
+  // subtle grain-like centre glow
+  const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,180);
+  grd.addColorStop(0,'rgba(201,168,76,.06)');
+  grd.addColorStop(1,'transparent');
+  ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+  // helper: rounded rect stroke
+  function rrect(x,y,w,h,r,color,lw){
+    ctx.strokeStyle=color; ctx.lineWidth=lw;
+    ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.stroke();
+  }
+
+  // double border
+  rrect(3,3,W-6,H-6, 7, gold(.55), .9);
+  rrect(9,9,W-18,H-18,5, gold(.25), .5);
+  rrect(16,16,W-32,H-32,3,gold(.12),.35);
+
+  // corner ornaments
+  const corners=[[18,18],[W-18,18],[18,H-18],[W-18,H-18]];
+  corners.forEach(([ox,oy],qi)=>{
+    const sx = qi%2===0 ? 1 : -1;
+    const sy = qi<2   ? 1 : -1;
+    ctx.strokeStyle=gold(.7); ctx.lineWidth=.8;
+    // L-bracket
+    ctx.beginPath();
+    ctx.moveTo(ox,oy+sy*14); ctx.lineTo(ox,oy); ctx.lineTo(ox+sx*14,oy);
+    ctx.stroke();
+    // small diamond
+    ctx.fillStyle=gold(.45);
+    ctx.save(); ctx.translate(ox,oy); ctx.rotate(Math.PI/4);
+    ctx.fillRect(-4,-4,8,8); ctx.restore();
+    // tiny circle at bracket midpoints
+    [0,14].forEach(d=>{
+      ctx.beginPath(); ctx.arc(ox,oy+sy*d,1.2,0,Math.PI*2);
+      ctx.fillStyle=gold(.5); ctx.fill();
+    });
+  });
+
+  // mid-side small ornaments
+  [[cx,10],[cx,H-10],[10,cy],[W-10,cy]].forEach(([mx,my])=>{
+    ctx.save(); ctx.translate(mx,my); ctx.rotate(Math.PI/4);
+    ctx.strokeStyle=gold(.4); ctx.lineWidth=.7;
+    ctx.strokeRect(-5,-5,10,10);
+    ctx.restore();
+  });
+
+  // sunburst rays from center
+  const RAY_INNER = 82, N_RAYS = 48;
+  for(let i=0;i<N_RAYS;i++){
+    const ang  = (i/N_RAYS)*Math.PI*2 - Math.PI/2;
+    const long = i%6===0;
+    const mid  = i%3===0 && !long;
+    const outerR = long ? 164 : mid ? 136 : 108;
+    const alpha  = long ? .40  : mid ? .22 : .10;
+    const lw     = long ? .9   : mid ? .6  : .4;
+    ctx.strokeStyle=gold(alpha); ctx.lineWidth=lw;
+    ctx.beginPath();
+    ctx.moveTo(cx+RAY_INNER*Math.cos(ang), cy+RAY_INNER*Math.sin(ang));
+    ctx.lineTo(cx+outerR  *Math.cos(ang), cy+outerR  *Math.sin(ang));
+    ctx.stroke();
+  }
+
+  // concentric rune rings
+  [[82,.5,.4],[70,.35,.2],[56,.6,.35]].forEach(([r,lw,a])=>{
+    ctx.strokeStyle=gold(a); ctx.lineWidth=lw;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  });
+
+  // tick marks on outer rune ring (r=82)
+  for(let i=0;i<36;i++){
+    const ang=(i/36)*Math.PI*2;
+    const len = i%9===0 ? 7 : i%3===0 ? 4 : 2;
+    const alp = i%9===0 ? .55 : i%3===0 ? .3 : .15;
+    ctx.strokeStyle=gold(alp); ctx.lineWidth=.6;
+    ctx.beginPath();
+    ctx.moveTo(cx+(82-len)*Math.cos(ang), cy+(82-len)*Math.sin(ang));
+    ctx.lineTo(cx+ 82    *Math.cos(ang), cy+ 82    *Math.sin(ang));
+    ctx.stroke();
+  }
+
+  // inner filled ring
+  const ig=ctx.createRadialGradient(cx,cy,0,cx,cy,52);
+  ig.addColorStop(0,'rgba(201,168,76,.12)'); ig.addColorStop(1,'transparent');
+  ctx.fillStyle=ig;
+  ctx.beginPath(); ctx.arc(cx,cy,52,0,Math.PI*2); ctx.fill();
+
+  // center diamond (will be the gem animation element)
+  // draw it faintly for the card bg
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(Math.PI/4);
+  const dg=ctx.createLinearGradient(-14,-14,14,14);
+  dg.addColorStop(0,'rgba(240,210,100,.5)'); dg.addColorStop(1,'rgba(160,100,10,.2)');
+  ctx.fillStyle=dg; ctx.fillRect(-12,-12,24,24);
+  ctx.strokeStyle=gold(.7); ctx.lineWidth=1; ctx.strokeRect(-12,-12,24,24);
+  ctx.restore();
+
+  // horizontal ornament lines (above & below center)
+  [[cy-100],[cy+100]].forEach(([ly])=>{
+    ctx.strokeStyle=gold(.2); ctx.lineWidth=.5;
+    ctx.beginPath(); ctx.moveTo(32,ly); ctx.lineTo(W-32,ly); ctx.stroke();
+    // small diamond on line
+    ctx.save(); ctx.translate(cx,ly); ctx.rotate(Math.PI/4);
+    ctx.strokeStyle=gold(.4); ctx.lineWidth=.7;
+    ctx.strokeRect(-4,-4,8,8); ctx.restore();
+  });
+
+  // faint star dots scattered
+  for(let i=0;i<30;i++){
+    const sx=Math.random()*W, sy=Math.random()*H;
+    const sr=Math.random()*.8+.2;
+    ctx.fillStyle=gold(Math.random()*.15+.05);
+    ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
+  }
+})();
+
+function introExit() {
+  const el = document.getElementById('intro');
+  el.classList.add('exit');
+  setTimeout(()=>{ el.style.display='none'; }, 950);
+}
+// auto exit after 4.5s
+setTimeout(introExit, 4500);
+
+/* ═══════════ CANVAS: atmosphere + particles ═══════════ */
+const cvs = document.getElementById('cvs');
+const ctx = cvs.getContext('2d');
+function resize(){ cvs.width=innerWidth; cvs.height=innerHeight; }
+resize(); addEventListener('resize', resize);
+
+function drawAtmo(){
+  // top center gold glow
+  const g1 = ctx.createRadialGradient(cvs.width/2, cvs.height*.08, 0, cvs.width/2, cvs.height*.15, cvs.width*.5);
+  g1.addColorStop(0,'rgba(212,168,42,.07)'); g1.addColorStop(1,'transparent');
+  ctx.fillStyle=g1; ctx.fillRect(0,0,cvs.width,cvs.height);
+  // mid amber bloom
+  const g2 = ctx.createRadialGradient(cvs.width*.2, cvs.height*.6, 0, cvs.width*.2, cvs.height*.6, cvs.width*.35);
+  g2.addColorStop(0,'rgba(180,110,10,.05)'); g2.addColorStop(1,'transparent');
+  ctx.fillStyle=g2; ctx.fillRect(0,0,cvs.width,cvs.height);
+  // right side warm glow
+  const g3 = ctx.createRadialGradient(cvs.width*.82, cvs.height*.4, 0, cvs.width*.82, cvs.height*.4, cvs.width*.3);
+  g3.addColorStop(0,'rgba(200,150,30,.04)'); g3.addColorStop(1,'transparent');
+  ctx.fillStyle=g3; ctx.fillRect(0,0,cvs.width,cvs.height);
+}
+
+// stars
+const stars = Array.from({length:200},()=>({
+  x:Math.random()*1920, y:Math.random()*1080,
+  r:Math.random()*.8+.1,
+  a:Math.random()*.25+.04,
+  f:Math.random()*Math.PI*2,
+}));
+
+// particles
+class Pt {
+  constructor(init){
+    this.x = Math.random()*cvs.width;
+    this.y = init ? Math.random()*cvs.height : cvs.height+10;
+    this.vx = (Math.random()-.5)*.2;
+    this.vy = -(Math.random()*.4+.08);
+    this.r  = Math.random()*2.2+.3;
+    this.a  = Math.random()*.55+.1;
+    this.da = Math.random()*.0009+.0002;
+    // all gold/amber tones
+    this.h = 38 + Math.random()*18;   /* 38–56: deep gold → bright amber */
+    this.s = 85 + Math.random()*10;
+    this.l = 55 + Math.random()*15;
+  }
+  step(){
+    this.x += this.vx + Math.sin(Date.now()*.0007+this.x*.01)*.06;
+    this.y += this.vy;
+    this.a -= this.da;
+    if(this.a<=0||this.y<-10){ this.x=Math.random()*cvs.width; this.y=cvs.height+10; this.a=Math.random()*.55+.1; this.da=Math.random()*.0009+.0002; }
+  }
+  draw(){
+    ctx.save();
+    ctx.globalAlpha=Math.max(0,this.a);
+    ctx.shadowBlur=8; ctx.shadowColor=`hsl(${this.h},${this.s}%,${this.l}%)`;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=`hsl(${this.h},${this.s}%,${this.l}%)`; ctx.fill();
+    ctx.restore();
+  }
+}
+
+const pts = Array.from({length:100},(_,i)=>new Pt(true));
+
+(function loop(t){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  drawAtmo();
+  stars.forEach(s=>{
+    ctx.beginPath(); ctx.arc(s.x%cvs.width, s.y%cvs.height, s.r, 0, Math.PI*2);
+    const a = s.a + Math.sin(t*.0003+s.f)*.06;
+    ctx.fillStyle=`rgba(255,230,160,${Math.max(0,a)})`; ctx.fill();
+  });
+  pts.forEach(p=>{ p.step(); p.draw(); });
+  requestAnimationFrame(loop);
+})();
+
+/* ═══════════ COUNTDOWN ═══════════ */
+const T = new Date('2026-04-01T14:00:00+09:00').getTime();
+const ids = ['cd-d','cd-h','cd-m','cd-s'].map(id=>document.getElementById(id));
+function tick(){
+  const d = T-Date.now(); if(d<=0){ids.forEach(e=>e.textContent='00');return;}
+  [Math.floor(d/86400000),Math.floor(d%86400000/3600000),Math.floor(d%3600000/60000),Math.floor(d%60000/1000)]
+    .forEach((v,i)=>ids[i].textContent=String(v).padStart(2,'0'));
+}
+tick(); setInterval(tick,1000);
+
+/* ═══════════ TEAMS CAROUSEL ═══════════ */
+const teams=[
+  {g:'g1',num:'1조', genre:'디펜스 · TPS · 슈팅',  name:'BulletAnt',
+   desc:'다양한 포탑과 무기로 끊임없이 밀려오는 적의 파도를 막아내는 전략 슈팅 게임. 방어와 공격의 균형을 잡아 최후의 보루를 지켜라.',
+   tags:['UE5.5','디펜스','TPS','Shooting'], members:'5명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team1-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481f3ad4dfbcad52fc8a6'},
+  {g:'g2',num:'2조', genre:'하이퍼 TPS',            name:'ProjectD',
+   desc:'더 파이널스 스타일의 빠른 템포 팀 기반 액션 TPS. 코어 쟁탈·코인 파밍·핫스왑 시스템으로 매 순간 전략적 판단이 요구된다.',
+   tags:['UE5.7','TPS','팀 배틀','핫스왑'], members:'6명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team2-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481408228fb152749c47a'},
+  {g:'g3',num:'3조', genre:'소울라이크 · 다크판타지', name:'Desecration',
+   desc:'다크소울을 오마주한 다크 판타지 소울라이크 RPG. 패링·회피·전략적 전투로 강력한 보스에게 도전하고 스팀 출시를 목표로 한다.',
+   tags:['UE5.7','소울라이크','RPG','다크판타지'], members:'10명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team3-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481d486e3f5f284f0c92f'},
+  {g:'g4',num:'4조', genre:'액션 오픈월드 RPG',      name:'오류의 땅: 제킨',
+   desc:'500년간 격리된 존재로 깨어나 통제의 벽을 허무는 여정. 시스템 오류로 되살아난 플레이어가 광활한 오픈월드를 탐험한다.',
+   tags:['UE5.7','오픈월드','액션RPG','보스'], members:'10명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team4-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481b08931ce0a8485889e'},
+  {g:'g5',num:'5조', genre:'좀비 어트렉션',          name:'PROJECT WARD ZERO',
+   desc:'Houdini 절차적 생성 기술을 활용한 아케이드형 좀비 슈팅 어트렉션. 쉴 새 없이 쏟아지는 좀비 물결에 맞서 생존하라.',
+   tags:['UE5.6','Houdini','좀비','슈팅'], members:'10명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team5-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481939333ea2ec23e3700'},
+  {g:'g6',num:'6조', genre:'AOS · 배틀로얄',         name:'ProjectER',
+   desc:'한정된 맵에서 성장 재화를 파밍하고 지역을 이동하며 아이템을 획득해 경쟁하는 온라인 AOS. GAS 기반 스킬 시스템이 핵심.',
+   tags:['UE5.7','AOS','배틀로얄','온라인'], members:'7명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team6-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef514813d86e9fd4efbaf438f'},
+  {g:'g7',num:'7조', genre:'TPS · 로그라이크',       name:'네크로멘서',
+   desc:'이스케이프 프롬 타르코프 + 리썰 컴퍼니 스타일의 던전 익스트렉션. 절차적 생성 던전을 탐사하고 아이템을 제출해 다음 층으로 나아가라.',
+   tags:['UE5.5','익스트렉션','로그라이크','멀티'], members:'6명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team7-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481f1bebcd28f7d74289a'},
+  {g:'g8',num:'8조', genre:'FPS · 파티게임',          name:'P2W : The Party Show',
+   desc:'FPS의 진입장벽을 파티 게임의 문법으로 파괴. Steam·AWS GameLift 기반 온라인 멀티 파티 FPS로 누구나 즐길 수 있는 난전이 펼쳐진다.',
+   tags:['UE5.7','FPS','파티게임','미니게임'], members:'6명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team8-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481259e4fc96d8195ad3d'},
+  {g:'g9',num:'9조', genre:'TPS · 생존 RPG',          name:'StillBound',
+   desc:'섬에 갇힌 조난자가 자원을 채집·제작해 보스를 처치하고 새로운 지역을 해금하는 세미 오픈월드 생존 액션 RPG. Valheim에서 영감.',
+   tags:['UE5.7','생존','오픈월드','크래프팅'], members:'8명',
+   github:'https://github.com/NbcampUnreal/5th_6th-Team9-CH6-Project',
+   notion:'https://www.notion.so/3302dc3ef51481e4b2d2e0305725e492'},
+];
+
+/* ═══════════ TEAMS EDITORIAL ═══════════ */
+const tgGrid = document.getElementById('tg-grid');
+
+teams.forEach((t, i) => {
+  const coverExt = i === 7 ? 'jpg' : 'png';
+  const cover = `cover${i+1}.${coverExt}`;
+
+  const card = document.createElement('div');
+  card.className = 'te-card reveal';
+  card.innerHTML = `
+    <div class="te-cover" style="background-image:url('${cover}')"></div>
+    <div class="te-grad"></div>
+    <div class="te-top">
+      <span class="te-genre">${t.genre}</span>
+      <span class="te-num">${String(i+1).padStart(2,'0')}</span>
+    </div>
+    <div class="te-bottom">
+      <h3 class="te-name">${t.name}</h3>
+      <div class="te-line"></div>
+      <div class="te-reveal">
+        <div class="te-reveal-inner">
+          <p class="te-desc">${t.desc}</p>
+          ${t.notion ? `<a class="te-link" href="${t.notion}" target="_blank" rel="noopener">브로셔 보기</a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  tgGrid.appendChild(card);
+});
+
+/* ═══════════ SCROLL REVEAL ═══════════ */
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
